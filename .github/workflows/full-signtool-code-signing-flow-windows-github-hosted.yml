@@ -1,0 +1,73 @@
+name: full-signtool-code-signing-flow-windows
+on:
+  workflow_dispatch:
+
+jobs:
+  example_job:
+    runs-on: windows-latest
+    name: Example with self-hosted Windows, executing Signtool Code Signing flow
+    steps:
+      - name: Setup Venafi CSP Driver
+        id: cspdriver
+        uses: qensus-labs/setup-venafi-csp@v1.0.0
+        with:
+          venafi-version: '24.1.0'
+          venafi-csc-url: ${{ vars.TPP_CSC_URL }}
+          venafi-auth-url: ${{ vars.TPP_AUTH_URL }}
+          venafi-hsm-url: ${{ vars.TPP_HSM_URL }}
+      - name: Display Venafi CSP Driver Cached Output Variables
+        run: |
+          echo "Output \"venafi-csp-cached-path\" [${{steps.cspdriver.outputs.venafi-csp-cached-path}}]"
+          echo "Output \"venafi-csp-cached-version\" [${{steps.cspdriver.outputs.venafi-csp-cached-version}}]"
+      - name: Check Venafi CSP Driver (version)
+        run: |
+          cspconfig.exe version
+      - name: Build Software Artifact
+        run: |
+          copy C:\Windows\System32\Notepad.exe foo.exe
+      - name: Store Software Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: foo.exe
+          path: foo.exe
+      - name: Setup Python SDK
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install Venafi CSP Python Package
+        run: pip install venafi-csp
+      - name: Show Venafi-CSP Package Version
+        shell: cmd
+        run: python -mvenafi_csp.version_command
+      - name: Setup Windows SDK (Including signtool)
+        uses: GuillaumeFalourd/setup-windows10-sdk-action@v2
+        with:
+          sdk-version: 20348
+      - name: Add signtool executable to GITHUB PATH
+        run: |
+          "C:\Program files (x86)\Windows Kits\10\bin\10.0.20348.0\x64" >> $env:GITHUB_PATH
+      - name: Sign Artifact with Signtool
+        shell: cmd
+        run: python -mvenafi_csp.signtool_sign_command
+        env:
+          TPP_AUTH_URL: ${{ vars.TPP_AUTH_URL }}
+          TPP_HSM_URL: ${{ vars.TPP_HSM_URL }}
+          TPP_USERNAME: ${{ vars.TPP_USERNAME }}
+          TPP_PASSWORD: ${{ secrets.TPP_PASSWORD }}
+          INPUT_PATH: foo.exe
+          CERTIFICATE_SUBJECT_NAME: signer
+          TIMESTAMPING_SERVERS: http://timestamp.digicert.com
+      - name: Verify Artifact with Signtool
+        shell: cmd
+        run: python -mvenafi_csp.signtool_verify_command
+        env:
+          TPP_AUTH_URL: ${{ vars.TPP_AUTH_URL }}
+          TPP_HSM_URL: ${{ vars.TPP_HSM_URL }}
+          TPP_USERNAME: ${{ vars.TPP_USERNAME }}
+          TPP_PASSWORD: ${{ secrets.TPP_PASSWORD }}
+          INPUT_PATH: foo.exe
+      - name: Store Signed Software Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: foo-signed.exe
+          path: foo.exe
