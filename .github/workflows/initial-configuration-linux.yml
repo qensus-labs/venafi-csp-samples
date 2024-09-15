@@ -17,6 +17,6 @@ jobs:
           venafi-csc-url: ${{ vars.TPP_CSC_URL }}
           venafi-auth-url: ${{ vars.TPP_AUTH_URL }}
           venafi-hsm-url: ${{ vars.TPP_HSM_URL }}
-          include-config: 'true'
+          include-config: 'false'
       - name: Check Venafi CSP Driver (version)
         run: pkcs11config --version
