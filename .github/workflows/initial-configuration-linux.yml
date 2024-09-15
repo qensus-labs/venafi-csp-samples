@@ -1,0 +1,22 @@
+name: initial-configuration-linux
+on:
+  workflow_dispatch:
+
+jobs:
+  example:
+    runs-on: ubuntu-latest
+
+    permissions: {}
+
+    name: Example including initial configuration
+    steps:
+      - name: Setup Venafi CSP Driver
+        uses: qensus-labs/setup-venafi-csp@v1.0.0
+        with:
+          venafi-version: '24.1.0'
+          venafi-csc-url: ${{ vars.TPP_CSC_URL }}
+          venafi-auth-url: ${{ vars.TPP_AUTH_URL }}
+          venafi-hsm-url: ${{ vars.TPP_HSM_URL }}
+          include-config: 'true'
+      - name: Check Venafi CSP Driver (version)
+        run: pkcs11config --version

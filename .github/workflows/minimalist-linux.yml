@@ -1,0 +1,16 @@
+name: minimalist-linux
+on:
+  workflow_dispatch:
+
+jobs:
+  example:
+    runs-on: ubuntu-latest
+
+    permissions: {}
+
+    name: Example to using defaults with local TPP
+    steps:
+      - name: Setup Venafi CSP Driver
+        uses: qensus-labs/setup-venafi-csp@v1.0.0
+      - name: Check Venafi CSP Driver (version)
+        run: pkcs11config --version
