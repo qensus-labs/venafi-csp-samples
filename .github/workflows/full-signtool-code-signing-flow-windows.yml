@@ -37,6 +37,7 @@ jobs:
       - name: Install Venafi CSP Python Package
         run: pip install venafi-csp
       - name: Show Venafi-CSP Package Version
+        shell: cmd
         run: python -mvenafi_csp.version_command
       - name: Setup Windows SDK (Including signtool)
         uses: GuillaumeFalourd/setup-windows10-sdk-action@v2
